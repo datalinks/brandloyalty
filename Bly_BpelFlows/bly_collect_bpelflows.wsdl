@@ -1,0 +1,33 @@
+<?xml version= '1.0' encoding= 'UTF-8' ?>
+<wsdl:definitions
+     name="bly_collect_bpelflows"
+     targetNamespace="http://xmlns.oracle.com/BrandLoyality_jws/Bly_BpelFlows/bly_collect_bpelflows"
+     xmlns:ns2="http://xmlns.brandloyality-int.com/back-end/service"
+     xmlns:ns1="http://xmlns.brandloyalty-int.com/back-end/service"
+     xmlns:plnk="http://schemas.xmlsoap.org/ws/2003/05/partner-link/"
+     xmlns:client="http://xmlns.oracle.com/BrandLoyality_jws/Bly_BpelFlows/bly_collect_bpelflows"
+     xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+    >
+    <plnk:partnerLinkType name="bly_collect_bpelflows">
+        <plnk:role name="bly_collect_bpelflowsProvider">
+            <plnk:portType name="client:bly_collect_bpelflows"/>
+        </plnk:role>
+    </plnk:partnerLinkType>
+    <wsdl:types>
+        <schema xmlns="http://www.w3.org/2001/XMLSchema">
+            <import namespace="http://xmlns.brandloyalty-int.com/back-end/service" schemaLocation="xsd/bly_types.xsd"/>
+        </schema>
+    </wsdl:types>
+    <wsdl:message name="bly_collect_bpelflowsRequestMessage">
+        <wsdl:part name="payload" element="ns1:addStampsForToken"/>
+    </wsdl:message>
+    <wsdl:message name="bly_collect_bpelflowsResponseMessage">
+        <wsdl:part name="payload" element="ns1:addStampsForTokenResponse"/>
+    </wsdl:message>
+    <wsdl:portType name="bly_collect_bpelflows">
+        <wsdl:operation name="process">
+            <wsdl:input message="client:bly_collect_bpelflowsRequestMessage"/>
+            <wsdl:output message="client:bly_collect_bpelflowsResponseMessage"/>
+        </wsdl:operation>
+    </wsdl:portType>
+</wsdl:definitions>

@@ -1,0 +1,164 @@
+<?xml version = "1.0" encoding = "UTF-8" ?>
+<!--
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  Oracle JDeveloper BPEL Designer 
+  
+  Created: Fri Oct 05 02:29:19 PDT 2012
+  Author:  oracle
+  Purpose: Synchronous BPEL Process
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+-->
+<process name="bly_collect_bpelflows"
+               targetNamespace="http://xmlns.oracle.com/BrandLoyality_jws/Bly_BpelFlows/bly_collect_bpelflows"
+               xmlns="http://schemas.xmlsoap.org/ws/2003/03/business-process/"
+               xmlns:client="http://xmlns.oracle.com/BrandLoyality_jws/Bly_BpelFlows/bly_collect_bpelflows"
+               xmlns:ora="http://schemas.oracle.com/xpath/extension"
+               xmlns:bpelx="http://schemas.oracle.com/bpel/extension"
+               xmlns:bpws="http://schemas.xmlsoap.org/ws/2003/03/business-process/"
+         xmlns:ns1="http://xmlns.brandloyality-int.com/back-end/service"
+         xmlns:ns2="http://xmlns.oracle.com/pcbpel/adapter/jms/BrandLoyality/Bly_BpelFlows/bly_jms_service"
+         xmlns:xp20="http://www.oracle.com/XSL/Transform/java/oracle.tip.pc.services.functions.Xpath20"
+         xmlns:bpel2="http://docs.oasis-open.org/wsbpel/2.0/process/executable"
+         xmlns:oraext="http://www.oracle.com/XSL/Transform/java/oracle.tip.pc.services.functions.ExtFunc"
+         xmlns:dvm="http://www.oracle.com/XSL/Transform/java/oracle.tip.dvm.LookupValue"
+         xmlns:xdk="http://schemas.oracle.com/bpel/extension/xpath/function/xdk"
+         xmlns:xref="http://www.oracle.com/XSL/Transform/java/oracle.tip.xref.xpath.XRefXPathFunctions"
+         xmlns:ldap="http://schemas.oracle.com/xpath/extension/ldap">
+
+  <!-- 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      PARTNERLINKS                                                      
+      List of services participating in this BPEL process               
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  --> 
+  <partnerLinks>
+    <!-- 
+      The 'client' role represents the requester of this service. It is 
+      used for callback. The location and correlation information associated
+      with the client role are automatically set using WS-Addressing.
+    -->
+    <partnerLink name="bly_collect_bpelflows_client" partnerLinkType="client:bly_collect_bpelflows" myRole="bly_collect_bpelflowsProvider"/>
+    <partnerLink name="bly_services" partnerRole="Collect"
+                 partnerLinkType="ns1:bly_services"/>
+    <partnerLink name="bly_jms_service" partnerRole="Produce_Message_role"
+                 partnerLinkType="ns2:Produce_Message_plt"/>
+  </partnerLinks>
+
+  <!-- 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      VARIABLES                                                        
+      List of messages and XML documents used within this BPEL process 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  -->
+  <variables>
+    <!-- Reference to the message passed as input during initiation -->
+
+    <!-- Reference to the message that will be returned to the requester-->
+    <variable name="bly_bpel_in_var"
+              messageType="client:bly_collect_bpelflowsRequestMessage"/>
+    <variable name="bly_bpel_out_var"
+              messageType="client:bly_collect_bpelflowsResponseMessage"/>
+    <variable name="bly_ws_in_var" messageType="ns1:addStampsForToken"/>
+    <variable name="bly_ws_out_var"
+              messageType="ns1:addStampsForTokenResponse"/>
+    <variable name="bly_jms_in_var" messageType="ns2:Produce_Message_msg"/>
+  </variables>
+  <faultHandlers>
+    <catchAll>
+      <sequence>
+        <pick name="Pick_2">
+          <onMessage partnerLink="bly_collect_bpelflows_client"
+                     portType="client:bly_collect_bpelflows"
+                     operation="process" variable="bly_bpel_in_var">
+            <sequence>
+              <empty name="Empty_1"/>
+            </sequence>
+          </onMessage>
+          <onAlarm for="'PT3S'">
+            <sequence>
+              <assign name="Transform_1">
+                <bpelx:annotation>
+                  <bpelx:pattern>transformation</bpelx:pattern>
+                </bpelx:annotation>
+                <copy>
+                  <from expression="ora:processXSLT('xsl/bly_bpelin2bpelout.xsl',bpws:getVariableData('bly_bpel_in_var','payload'))"/>
+                  <to variable="bly_bpel_out_var" part="payload"/>
+                </copy>
+              </assign>
+              <reply name="Reply_1" faultName="bpelx:timeout"
+                     variable="bly_bpel_out_var"
+                     partnerLink="bly_collect_bpelflows_client"
+                     portType="client:bly_collect_bpelflows"
+                     operation="process"/>
+            </sequence>
+          </onAlarm>
+        </pick>
+        <assign name="bly_bpel2jms_trans2">
+          <bpelx:annotation>
+            <bpelx:pattern>transformation</bpelx:pattern>
+          </bpelx:annotation>
+          <copy>
+            <from expression="ora:processXSLT('xsl/bly_bpel2jms_trans2.xsl',bpws:getVariableData('bly_bpel_in_var','payload'))"/>
+            <to variable="bly_jms_in_var" part="body"/>
+          </copy>
+        </assign>
+        <invoke name="bly_invoke_jms" partnerLink="bly_jms_service"
+                portType="ns2:Produce_Message_ptt" operation="Produce_Message"
+                inputVariable="bly_jms_in_var"/>
+      </sequence>
+    </catchAll>
+  </faultHandlers>
+  <!-- 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+     ORCHESTRATION LOGIC                                               
+     Set of activities coordinating the flow of messages across the    
+     services integrated within this business process                  
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  -->
+  <sequence name="main">
+
+    <!-- Receive input from requestor. (Note: This maps to operation defined in bly_collect_bpelflows.wsdl) -->
+    <receive name="receiveInput" partnerLink="bly_collect_bpelflows_client" portType="client:bly_collect_bpelflows" operation="process"
+             variable="bly_bpel_in_var" createInstance="yes"/>
+
+    <!-- Generate reply to synchronous request -->
+    <assign name="bly_bpel2ws_trans">
+      <bpelx:annotation>
+        <bpelx:pattern>transformation</bpelx:pattern>
+      </bpelx:annotation>
+      <copy>
+        <from expression="ora:processXSLT('xsl/bly_bpel2ws_trans.xsl',bpws:getVariableData('bly_bpel_in_var','payload'))"/>
+        <to variable="bly_ws_in_var" part="parameters"/>
+      </copy>
+    </assign>
+    <invoke name="bly_invoke_ws" inputVariable="bly_ws_in_var"
+            outputVariable="bly_ws_out_var" partnerLink="bly_services"
+            portType="ns1:Collect" operation="addStampsForToken"/>
+    <pick name="Pick_1" createInstance="no">
+      <onMessage partnerLink="bly_collect_bpelflows_client"
+                 portType="client:bly_collect_bpelflows" operation="process"
+                 variable="bly_bpel_in_var">
+        <sequence>
+          <throw name="bly_throwTimeOutException" faultName="bpelx:timeout"
+                 faultVariable="bly_bpel_in_var"/>
+        </sequence>
+      </onMessage>
+      <onAlarm for="'PT2S'">
+        <sequence>
+          <assign name="bly_ws2bpel_trans">
+            <bpelx:annotation>
+              <bpelx:pattern>transformation</bpelx:pattern>
+            </bpelx:annotation>
+            <copy>
+              <from expression="ora:processXSLT('xsl/bly_ws2bpel_trans.xsl',bpws:getVariableData('bly_ws_out_var','parameters'))"/>
+              <to variable="bly_bpel_out_var" part="payload"/>
+            </copy>
+          </assign>
+          <reply name="replyOutput" partnerLink="bly_collect_bpelflows_client"
+                 portType="client:bly_collect_bpelflows" operation="process"
+                 variable="bly_bpel_out_var"/>
+        </sequence>
+      </onAlarm>
+    </pick>
+  </sequence>
+</process>

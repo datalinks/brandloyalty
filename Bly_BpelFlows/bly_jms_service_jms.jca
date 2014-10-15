@@ -1,0 +1,13 @@
+<adapter-config name="bly_jms_service" adapter="Jms Adapter" wsdlLocation="bly_jms_service.wsdl" xmlns="http://platform.integration.oracle/blocks/adapter/fw/metadata">
+  
+  <connection-factory location="jms/bly_jms_cf" UIConnectionName="Osb_Domain" UIJmsProvider="WLSJMS" adapterRef=""/>
+  <endpoint-interaction portType="Produce_Message_ptt" operation="Produce_Message">
+    <interaction-spec className="oracle.tip.adapter.jms.outbound.JmsProduceInteractionSpec">
+      <property name="DestinationName" value="jms/bly_jms_q"/>
+      <property name="DeliveryMode" value="Persistent"/>
+      <property name="TimeToLive" value="172800000"/>
+      <property name="PayloadType" value="TextMessage"/>
+    </interaction-spec>
+  </endpoint-interaction>
+
+</adapter-config>

@@ -1,0 +1,21 @@
+<schema targetNamespace="http://xmlns.oracle.com/pcbpel/adapter/jms/MapMessage"
+        xmlns="http://www.w3.org/2001/XMLSchema"
+        xmlns:tns="http://xmlns.oracle.com/pcbpel/adapter/jms/MapMessage"
+        elementFormDefault="qualified">
+ <element name="MapMessage">
+  <complexType>
+   <choice maxOccurs="unbounded">
+    <element name="entry">
+     <complexType>
+      <simpleContent>
+       <extension base="string">
+        <attribute name="name" type="string"/>
+        <attribute name="dt" type="string"/>
+       </extension>
+      </simpleContent>
+     </complexType>
+    </element>
+   </choice>
+  </complexType>
+ </element>
+</schema>

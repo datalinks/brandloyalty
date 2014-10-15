@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='UTF-8'?><!-- Published by JAX-WS RI at http://jax-ws.dev.java.net. RI's version is Oracle JAX-WS 2.1.5. --><xs:schema xmlns:tns="http://xmlns.brandloyalty-int.com/back-end/service" xmlns:xs="http://www.w3.org/2001/XMLSchema" version="1.0" targetNamespace="http://xmlns.brandloyalty-int.com/back-end/service">
+
+<xs:element name="addStampsForToken" type="tns:addStampsForToken"/>
+
+<xs:element name="addStampsForTokenResponse" type="tns:addStampsForTokenResponse"/>
+
+
+<xs:complexType name="addStampsForToken">
+<xs:sequence>
+<xs:element name="tokenId" type="xs:long"/>
+<xs:element name="stamps" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="addStampsForTokenResponse">
+<xs:sequence>
+<xs:element name="return" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+
+</xs:schema>
